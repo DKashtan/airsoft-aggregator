@@ -1,7 +1,14 @@
 'use client'
+
 import { useEffect, useState, useMemo } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import MapView from '../components/MapView'
+import dynamic from 'next/dynamic'
+
+// ВАЖНО: запрещаем пререндер (иначе "window is not defined")
+export const dynamic = 'force-dynamic'
+
+// Динамический импорт карты без SSR
+const MapView = dynamic(() => import('../components/MapView'), { ssr: false })
 
 type Venue = { id:number; name:string; lat:number; lng:number; address?:string; city_id?:number }
 type EventRow = { id:number; title:string; start_time:string; description?:string; city_id:number }
@@ -18,7 +25,6 @@ export default function Home() {
   const [cityId, setCityId] = useState<string>('')   // '' = все города
   const [date, setDate]   = useState<string>('')
 
-  // Загружаем данные
   useEffect(() => {
     (async () => {
       const { data: v } = await supabase.from('venues').select('id,name,lat,lng,address,city_id').limit(500)
@@ -32,7 +38,6 @@ export default function Home() {
     })()
   }, [])
 
-  // Фильтрация событий
   const filteredEvents = useMemo(() => {
     return events.filter(e => {
       const okCity = cityId ? String(e.city_id) === String(cityId) : true
@@ -41,12 +46,10 @@ export default function Home() {
     })
   }, [events, cityId, date])
 
-  // Фильтрация площадок для карты
   const filteredVenues = useMemo(() => {
     return cityId ? venues.filter(v => String(v.city_id) === String(cityId)) : venues
   }, [venues, cityId])
 
-  // Центр карты
   const { center, zoom } = cityId ? CITY_CENTERS[cityId] ?? { center: DEFAULT_CENTER, zoom: 10 } : { center: DEFAULT_CENTER, zoom: 10 }
 
   return (

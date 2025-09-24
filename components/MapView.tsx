@@ -31,14 +31,12 @@ export default function MapView({
   autoFit = false
 }: { points: Point[]; center?: [number, number]; zoom?: number; autoFit?: boolean }) {
 
-  // фикс иконок Leaflet
+  // фиксим иконки маркеров без ts-ignore
   useEffect(() => {
-    // @ts-ignore
-    delete L.Icon.Default.prototype._getIconUrl
     L.Icon.Default.mergeOptions({
       iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
     })
   }, [])
 
@@ -46,7 +44,7 @@ export default function MapView({
     <div style={{ height: 420 }}>
       <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }}>
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <Recenter center={center} zoom={zoom} />
+        <Recenter center={center as [number, number]} zoom={zoom} />
         {autoFit && <FitToPoints points={points} />}
         {points.map(p => (
           <Marker key={p.id} position={[p.lat, p.lng]}>
